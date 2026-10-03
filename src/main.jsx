@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import './styles.css'
 import './output-routing.css'
+import './beat-lab.css'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

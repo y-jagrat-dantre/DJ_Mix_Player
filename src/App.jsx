@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { CircleHelp, CloudOff, Settings2, X } from 'lucide-react'
+import BeatLab from './components/BeatLab'
 import Deck from './components/Deck'
 import Library from './components/Library'
 import Mixer from './components/Mixer'
@@ -170,6 +171,7 @@ export default function App() {
     <Waveform decks={decks} onSeek={seekDeck} />
     <OutputRouting devices={devices} outputs={outputs} supported={outputSupported} onRefresh={refreshDevices} onChange={changeOutput} />
     <div className="deck-grid"><Deck deck={decks.a} deckId="a" onPlay={() => void playDeck('a')} onCue={() => cueDeck('a')} onSeek={(value) => seekDeck('a', value)} onVolume={(value) => setDeckVolume('a', value)} onPitch={(value) => setDeckPitch('a', value)} onLoadClick={() => fileInputs.a.current?.click()} onDrop={(event) => handleDeckDrop(event, 'a')} onAction={(action, value) => deckAction('a', action, value)} /><Mixer mixer={mixer} onChange={updateMixer} onCrossfader={updateCrossfader} onMaster={updateMaster} /><Deck deck={decks.b} deckId="b" onPlay={() => void playDeck('b')} onCue={() => cueDeck('b')} onSeek={(value) => seekDeck('b', value)} onVolume={(value) => setDeckVolume('b', value)} onPitch={(value) => setDeckPitch('b', value)} onLoadClick={() => fileInputs.b.current?.click()} onDrop={(event) => handleDeckDrop(event, 'b')} onAction={(action, value) => deckAction('b', action, value)} /></div>
+    <BeatLab onNotify={toast} />
     <Library tracks={tracks} search={search} onSearch={setSearch} onImport={importFiles} onLoad={(id, deckId) => { const track = tracks.find((item) => item.id === id); if (track) void loadTrack(deckId, track) }} onAddQueue={addQueue} onRemoveQueue={removeQueue} onClearQueue={clearQueue} onRemoveTrack={removeTrack} onDragStart={handleTrackDrag} onToggleFavorite={toggleFavorite} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRenamePlaylist={renamePlaylist} onDeletePlaylist={deletePlaylist} onRemoveFromPlaylist={removeFromPlaylist} activePlaylistId={activePlaylistId} onSelectPlaylist={setActivePlaylistId} queue={queue} playlists={playlists} />
   </main>{showWelcome && <Welcome onImport={importFiles} onContinue={dismissWelcome} />}<input ref={fileInputs.a} type="file" accept="audio/*" hidden onChange={(event) => handleDeckFiles('a', event.target.files, event.target)} /><input ref={fileInputs.b} type="file" accept="audio/*" hidden onChange={(event) => handleDeckFiles('b', event.target.files, event.target)} /><ToastStack toasts={toasts} onDismiss={(id) => setToasts((current) => current.filter((toastItem) => toastItem.id !== id))} /></div>
 }
