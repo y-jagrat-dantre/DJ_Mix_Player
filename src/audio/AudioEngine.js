@@ -40,6 +40,9 @@ export class AudioEngine {
     const filter = context.createBiquadFilter()
     const channelGain = context.createGain()
     const crossGain = context.createGain()
+    const delay = context.createDelay(2)
+    const delayFeedback = context.createGain()
+    const delayWet = context.createGain()
     const analyser = context.createAnalyser()
     const masterGain = context.createGain()
     const compressor = context.createDynamicsCompressor()
@@ -52,9 +55,13 @@ export class AudioEngine {
     masterGain.gain.value = 0.86
     compressor.threshold.value = -2; compressor.knee.value = 8; compressor.ratio.value = 8; compressor.attack.value = 0.003; compressor.release.value = 0.18
     analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.78
+    delay.delayTime.value = 0.28; delayFeedback.gain.value = 0.35; delayWet.gain.value = 0
 
-    source.connect(inputGain).connect(low).connect(mid).connect(high).connect(filter).connect(channelGain).connect(crossGain).connect(analyser).connect(masterGain).connect(compressor).connect(context.destination)
-    const deck = { id, context, audio, objectUrl: null, inputGain, low, mid, high, filter, channelGain, crossGain, analyser, masterGain, compressor, outputDeviceId: 'default', outputSupport: Boolean(context.setSinkId || audio.setSinkId) }
+    source.connect(inputGain).connect(low).connect(mid).connect(high).connect(filter).connect(channelGain).connect(crossGain)
+    channelGain.connect(delay).connect(delayWet).connect(crossGain)
+    delay.connect(delayFeedback).connect(delay)
+    crossGain.connect(analyser).connect(masterGain).connect(compressor).connect(context.destination)
+    const deck = { id, context, audio, objectUrl: null, inputGain, low, mid, high, filter, channelGain, crossGain, delay, delayFeedback, delayWet, analyser, masterGain, compressor, outputDeviceId: 'default', outputSupport: Boolean(context.setSinkId || audio.setSinkId) }
     const onEvent = (type) => () => this.emit({ type, deckId: id, currentTime: audio.currentTime || 0, duration: audio.duration || 0 })
     audio.addEventListener('loadedmetadata', onEvent('metadata'))
     audio.addEventListener('timeupdate', onEvent('time'))
@@ -90,6 +97,7 @@ export class AudioEngine {
   setCrossfader(value) { this.ensureContext(); const position = clamp(value, 0, 1); this.decks.a.crossGain.gain.value = Math.cos(position * Math.PI * 0.5); this.decks.b.crossGain.gain.value = Math.sin(position * Math.PI * 0.5) }
   setEq(id, band, value) { const deck = this.getDeck(id); const target = { low: deck.low, mid: deck.mid, high: deck.high }[band]; if (target) target.gain.value = clamp(value, -12, 12) }
   setFilter(id, value) { const deck = this.getDeck(id); const normalized = clamp(value, -1, 1); if (normalized === 0) { deck.filter.type = 'lowpass'; deck.filter.frequency.value = 22000; return } deck.filter.type = normalized < 0 ? 'lowpass' : 'highpass'; deck.filter.frequency.value = normalized < 0 ? 22000 - Math.abs(normalized) * 21000 : 40 + normalized * 21960 }
+  setFx(id, key, value) { const deck = this.getDeck(id); if (key === 'echo') deck.delayWet.gain.value = clamp(value, 0, 1); if (key === 'feedback') deck.delayFeedback.gain.value = clamp(value, 0, 0.85); if (key === 'time') deck.delay.delayTime.value = clamp(value, 0.08, 0.8) }
   setPlaybackRate(id, rate) { this.getDeck(id).audio.playbackRate = clamp(rate, 0.5, 1.5) }
 
   async setOutputDevice(id, deviceId) {

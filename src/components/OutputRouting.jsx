@@ -1,12 +1,12 @@
 import React from 'react'
 import { Headphones, RefreshCw, Speaker } from 'lucide-react'
 
+function DeviceIllustration({ type }) {
+  return <div className={`device-illustration ${type}`} aria-hidden="true">{type === 'headphones' ? <><span className="headphone-band" /><span className="headphone-cup left" /><span className="headphone-cup right" /><i className="headphone-glow" /></> : <><span className="speaker-box" /><span className="speaker-cone top" /><span className="speaker-cone bottom" /><i className="speaker-led" /></>}</div>
+}
+
 export default function OutputRouting({ devices, outputs, supported, onRefresh, onChange }) {
-  return <section className="output-routing" aria-label="Audio output routing">
-    <div className="output-routing-title"><div><span className="section-mini-label">OUTPUT ROUTING</span><strong>Send each deck to a different device</strong></div><button className="mini-icon" onClick={onRefresh} aria-label="Refresh output devices" title="Refresh output devices"><RefreshCw size={13} /></button></div>
-    <div className="output-routing-grid">
-      {['a', 'b'].map((deckId) => <label className={`output-select output-${deckId}`} key={deckId}><span>{deckId === 'a' ? <Headphones size={13} /> : <Speaker size={13} />} DECK {deckId.toUpperCase()} OUTPUT</span><select value={outputs[deckId] || 'default'} onChange={(event) => onChange(deckId, event.target.value)} disabled={!supported}><option value="default">System default</option>{devices.map((device) => <option value={device.deviceId} key={device.deviceId}>{device.label || `Audio output ${device.deviceId.slice(0, 6)}`}</option>)}</select></label>)}
-    </div>
-    <p className="output-routing-note">{supported ? 'Choose headphones for cueing Deck A and speakers for Deck B. Output choices apply independently when supported by this browser.' : 'Per-deck device routing is unavailable until the browser exposes Audio Output Device Selection. The system default output remains active.'}</p>
-  </section>
+  const card = (deckId, type, label) => <div className={`device-card device-${type} output-${deckId}`}><div className="device-card-art"><DeviceIllustration type={type} /><span className="device-card-index">{deckId === 'a' ? '01' : '02'}</span></div><div className="device-card-info"><span className="device-card-label">{type === 'headphones' ? <Headphones size={12} /> : <Speaker size={12} />} {label}</span><strong>{outputs[deckId] === 'default' || !outputs[deckId] ? 'SYSTEM DEFAULT' : devices.find((device) => device.deviceId === outputs[deckId])?.label || 'CUSTOM OUTPUT'}</strong><label className="output-select"><span>DECK {deckId.toUpperCase()} SIGNAL</span><select value={outputs[deckId] || 'default'} onChange={(event) => onChange(deckId, event.target.value)} disabled={!supported}><option value="default">System default</option>{devices.map((device) => <option value={device.deviceId} key={device.deviceId}>{device.label || `Audio output ${device.deviceId.slice(0, 6)}`}</option>)}</select></label></div></div>
+
+  return <section className="output-routing" aria-label="Audio output routing"><div className="output-routing-title"><div><span className="section-mini-label">PRIVATE CUE + MAIN OUT</span><strong>Preview in headphones, send the room to speakers</strong></div><button className="mini-icon" onClick={onRefresh} aria-label="Refresh output devices" title="Refresh output devices"><RefreshCw size={13} /></button></div><div className="device-card-grid">{card('a', 'headphones', 'HEADPHONES / CUE')}{card('b', 'speaker', 'SPEAKERS / ROOM')}</div><p className="output-routing-note">{supported ? 'Choose separate devices for each deck. The illustrated cards show the DJ cue and room output paths.' : 'Your browser currently exposes only the system output. The visual routing cards are ready; separate device selection requires Audio Output Device Selection support.'}</p></section>
 }
