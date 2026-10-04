@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { Disc3, Headphones, LockKeyhole, RotateCcw, SkipBack, SkipForward, Volume2 } from 'lucide-react'
+import { Disc3, Headphones, LockKeyhole, RotateCcw, SkipBack, SkipForward, Volume2, LogIn, LogOut, X, Repeat2, Scissors, Sparkles, Radio } from 'lucide-react'
 import Knob from './Knob'
 
 const formatTime = (seconds) => {
@@ -59,7 +59,18 @@ function TransportButton({ children, onClick, active, accent, title, disabled = 
   return <button className={`transport-button ${active ? 'active' : ''} ${accent || ''}`} onClick={onClick} title={title} disabled={disabled}>{children}</button>
 }
 
-export default function Deck({ deck, deckId, onPlay, onCue, onSeek, onVolume, onPitch, onLoadClick, onDrop, onAction }) {
+const PERFORMANCE_PADS = [
+  { id: 'loop-in', label: 'IN', sub: 'MANUAL', tone: 'amber', icon: LogIn },
+  { id: 'loop-out', label: 'OUT', sub: 'MANUAL', tone: 'green', icon: LogOut },
+  { id: 'loop-exit', label: 'EXIT', sub: 'AUTO', tone: 'violet', icon: X },
+  { id: 'sampler', label: '1/2X', sub: 'SAMPLER', tone: 'lime', icon: Sparkles },
+  { id: 'roll', label: 'ROLL', sub: '1/2', tone: 'blue', icon: Repeat2 },
+  { id: 'hot-loop', label: 'HOT LOOP', sub: '4 BEATS', tone: 'pink', icon: Repeat2 },
+  { id: 'slicer', label: 'SLICER', sub: 'AUTO', tone: 'white', icon: Scissors },
+  { id: 'bank', label: 'BANK', sub: '16', tone: 'brown', icon: Radio },
+]
+
+export default function Deck({ deck, deckId, onPlay, onCue, onSeek, onVolume, onPitch, onLoadClick, onDrop, onAction, onPerformancePad }) {
   const progress = deck.duration ? (deck.currentTime / deck.duration) * 100 : 0
   const pitchDisplay = `${deck.pitch >= 0 ? '+' : ''}${deck.pitch.toFixed(1)}%`
 
@@ -88,6 +99,7 @@ export default function Deck({ deck, deckId, onPlay, onCue, onSeek, onVolume, on
           <div className="deck-foot-controls"><Knob label="TRIM" value={deck.trim} min={0} max={1} onChange={(value) => onAction('trim', value)} display={`${Math.round(deck.trim * 100)}%`} /><Knob label="FILTER" value={deck.filter} min={-1} max={1} step={0.01} onChange={(value) => onAction('filter', value)} display={deck.filter === 0 ? 'OFF' : `${deck.filter > 0 ? '+' : ''}${Math.round(deck.filter * 100)}`} /><Knob label="VOL" value={deck.volume} min={0} max={1} onChange={onVolume} accent={deckId === 'a' ? 'amber' : 'blue'} display={`${Math.round(deck.volume * 100)}%`} /></div>
         </div>
       </div>
+      <div className="performance-pad-bank"><div className="pad-bank-heading"><span className="section-mini-label">PERFORMANCE PADS</span><b>PAD MODE / {deck.padBank || 'A'}</b></div><div className="performance-pad-grid">{PERFORMANCE_PADS.map(({ id, label, sub, tone, icon: Icon }) => <button key={id} className={`performance-pad pad-${tone} ${deck.performance?.[id] ? 'active' : ''}`} onClick={() => onPerformancePad?.(id)} title={`${label} ${sub}`}><Icon size={14} /><strong>{label}</strong><small>{sub}</small></button>)}</div></div>
       <div className="deck-bottom-row"><div className="hot-cues"><span className="section-mini-label">HOT CUES</span>{deck.cues.map((cue, index) => <button key={index} className={`cue-pad ${cue ? 'filled' : ''}`} onClick={() => onAction('cue-pad', index)} title={cue ? `Jump to cue ${index + 1}` : `Set cue ${index + 1}`}>{String(index + 1).padStart(2, '0')}</button>)}</div><button className="load-drop" onClick={onLoadClick} aria-label={`Load a local track to ${deck.label}`}><SkipBack size={13} /> LOAD LOCAL TRACK <span>or drop file</span></button></div>
     </section>
   )

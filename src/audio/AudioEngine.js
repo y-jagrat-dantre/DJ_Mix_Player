@@ -98,6 +98,7 @@ export class AudioEngine {
   setEq(id, band, value) { const deck = this.getDeck(id); const target = { low: deck.low, mid: deck.mid, high: deck.high }[band]; if (target) target.gain.value = clamp(value, -12, 12) }
   setFilter(id, value) { const deck = this.getDeck(id); const normalized = clamp(value, -1, 1); if (normalized === 0) { deck.filter.type = 'lowpass'; deck.filter.frequency.value = 22000; return } deck.filter.type = normalized < 0 ? 'lowpass' : 'highpass'; deck.filter.frequency.value = normalized < 0 ? 22000 - Math.abs(normalized) * 21000 : 40 + normalized * 21960 }
   setFx(id, key, value) { const deck = this.getDeck(id); if (key === 'echo') deck.delayWet.gain.value = clamp(value, 0, 1); if (key === 'feedback') deck.delayFeedback.gain.value = clamp(value, 0, 0.85); if (key === 'time') deck.delay.delayTime.value = clamp(value, 0.08, 0.8) }
+  triggerSampler(id, slot = 0) { const deck = this.getDeck(id); const oscillator = deck.context.createOscillator(); const gain = deck.context.createGain(); const now = deck.context.currentTime; oscillator.type = slot % 2 ? 'square' : 'triangle'; oscillator.frequency.setValueAtTime(180 + slot * 75, now); oscillator.frequency.exponentialRampToValueAtTime(70 + slot * 20, now + 0.18); gain.gain.setValueAtTime(0.22, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22); oscillator.connect(gain).connect(deck.crossGain); oscillator.start(now); oscillator.stop(now + 0.24) }
   setPlaybackRate(id, rate) { this.getDeck(id).audio.playbackRate = clamp(rate, 0.5, 1.5) }
 
   async setOutputDevice(id, deviceId) {
